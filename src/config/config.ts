@@ -11,11 +11,15 @@ interface EnvConfig {
     dbPort: string;
     zabbixToken: string;
     zabbixUrl: string;
+    listeningPort: number;
+    listeningAddress: string;
+    corsOrigin: string;
+    timeout: number;
 }
 
 
-console.log(":", process.env.DB_HOST);
-console.log(":", process.env.DB_PORT);
+// console.log(":", process.env.DB_HOST);
+// console.log(":", process.env.DB_PORT);
 
 // Validate required env variables
 const getConfig = (): EnvConfig => {
@@ -49,6 +53,10 @@ const getConfig = (): EnvConfig => {
         dbPort: process.env.DB_PORT,
         zabbixToken: process.env.ZABBIX_TOKEN,
         zabbixUrl: process.env.ZABBIX_URL,
+        listeningPort: parseInt(process.env.PORT ? process.env.PORT : "8080", 10),
+        listeningAddress: process.env.LISTEN_ADDRESS ? process.env.LISTEN_ADDRESS : "localhost",
+        corsOrigin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN : "http://localhost:8081",
+        timeout: parseInt(process.env.TIMEOUT ? process.env.TIMEOUT : "4000", 10),
     };
   };
 

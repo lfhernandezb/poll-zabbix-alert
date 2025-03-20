@@ -13,18 +13,22 @@ async function queryAllAlerts(): Promise<any> {
         method: "problem.get",
         id: 1,
         params: {
-            output: "extend",
-            selectAcknowledges: "extend",
-            selectTags: "extend",
-            selectSuppressionData: "extend",
-            recent: "true",
+            output: ["eventid", "source", "objectid", "acknowledged"],
+            acknowledged: undefined,
+            selectAcknowledges: undefined,
+            selectTags: undefined,
+            selectSuppressionData: undefined,
+            recent: "true", // true - return PROBLEM and recently RESOLVED problems (depends on Display OK triggers for N seconds) Default: false - UNRESOLVED problems only
             sortfield: ["eventid"],
             sortorder: "DESC"              
         },
     };
 
+    console.log(instanceToPlain(request, ));
+
     // send an http request to the backend using axios
-    return axios.post(config.zabbixUrl + "/zabbix/api_jsonrpc.php", instanceToPlain(request, ), {
+    return axios.post(config.zabbixUrl, instanceToPlain(request, ), {
+        timeout: config.timeout,
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${config.zabbixToken}`
@@ -52,7 +56,8 @@ async function queryAlertById(id: number): Promise<any> {
     console.log(instanceToPlain(request, ));
 
     // send an http request to the backend using axios
-    return axios.post(config.zabbixUrl + "/zabbix/api_jsonrpc.php", instanceToPlain(request, ), {
+    return axios.post(config.zabbixUrl, instanceToPlain(request, ), {
+        timeout: config.timeout,
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${config.zabbixToken}`
@@ -73,10 +78,11 @@ async function queryHostByTriggerId(id: string): Promise<any> {
         },
     };
 
-    console.log(instanceToPlain(request, ));
+    // console.log(instanceToPlain(request, ));
 
     // send an http request to the backend using axios
-    return axios.post(config.zabbixUrl + "/zabbix/api_jsonrpc.php", instanceToPlain(request, ), {
+    return axios.post(config.zabbixUrl, instanceToPlain(request, ), {
+        timeout: config.timeout,
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${config.zabbixToken}`

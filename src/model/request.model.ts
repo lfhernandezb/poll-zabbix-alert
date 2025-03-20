@@ -1,5 +1,5 @@
 export class Params {
-    output?:                string;
+    output?:                string | string[];
     selectAcknowledges?:    string;
     selectTags?:            string;
     selectSuppressionData?: string;
@@ -8,6 +8,7 @@ export class Params {
     sortorder?:             string;
     eventids?:              string;
     triggerids?:            string[];
+    acknowledged?:          string;
 }
 
 export class PollRequest {

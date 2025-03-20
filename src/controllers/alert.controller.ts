@@ -1,14 +1,18 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response, RequestHandler } from "express";
 import { PollResponse, Result } from "../model/response.model";
 import { queryAllAlerts, queryAlertById, queryHostByTriggerId } from "../services/zabbix.service";
 import { plainToInstance } from "class-transformer";
 import { getHostByTriggerId } from "./host.controller";
+import axios from "axios";
+import { handleAxiosError } from "../handlers/handle-axios-error";
+import { Alert } from "../model/alert.model";
 /*
 export const welcome: (req: Request, res: Response, next: NextFunction) => void = (req, res, next) => {
     // Your implementation
     res.send("Welcome!");
 };
 */
+// async function getAllAlerts(req: Request, res: Response, next: NextFunction): Promise<Response<any, Record<string, any>> | undefined> {
 export const getAllAlerts: (req: Request, res: Response, next: NextFunction) => Promise<void> = async (req, res, next) => {
     // Your implementation
     try {
@@ -16,15 +20,18 @@ export const getAllAlerts: (req: Request, res: Response, next: NextFunction) => 
         const resp = await queryAllAlerts();
         const pollResponse = resp.data;
         // console.log(resp.data);
-        parseZabbixResponse(pollResponse);
-        res.send("Poll!");
+        const alerts: Alert[] = await parseZabbixResponse(pollResponse);
+        console.log("alerts.length: " + alerts.length);
+        res.status(200).json(alerts); //json({ message: "Ok" });
+        
     } catch (error: any) {
-        console.error("error caught!")
-        console.log(error.cause);        
+        next(error); // Pass the error to the middleware
     }
+        
 };
 
-export const getAlertById: (req: Request, res: Response, next: NextFunction) => Promise<void> = async (req, res, next) => {
+// async function getAlertById(req: Request, res: Response, next: NextFunction): Promise<Response<any, Record<string, any>> | undefined> {
+export const getAlertById: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
     // Your implementation
     try {
         
@@ -32,15 +39,19 @@ export const getAlertById: (req: Request, res: Response, next: NextFunction) => 
         const resp = await queryAlertById(id);
         const pollResponse = resp.data;
         // console.log(resp.data);
-        parseZabbixResponse(pollResponse);
-        res.send("Poll!");
+        const alerts: Alert[] = await parseZabbixResponse(pollResponse);
+        console.log("alerts.length: " + alerts.length);
+        
+        res.status(200).json(alerts); // json({ message: "Ok" });
+
     } catch (error: any) {
-        console.error("error caught!")
-        console.log(error.cause);        
+        next(error); // Pass the error to the middleware    
     }
 };
 
-async function parseZabbixResponse(pollResponse: PollResponse): Promise<void> {
+async function parseZabbixResponse(pollResponse: PollResponse): Promise<Alert[]> {
+    const alertArray: Alert[] = [];
+
     const zabixResp = plainToInstance(PollResponse, JSON.parse(JSON.stringify(pollResponse)), {
         excludeExtraneousValues: false,
     });
@@ -62,6 +73,19 @@ async function parseZabbixResponse(pollResponse: PollResponse): Promise<void> {
                     });
 
                     if (zabixRes && zabixRes.result && zabixRes.result.length > 0) {
+                        const alert: Alert = {
+                            id: res.eventid,
+                            description: res.name,
+                            hostName: zabixRes.result[0].name,
+                            severity: res.severity,
+                            clock: res.clock,
+                            acknowledged: res.acknowledged,
+                            userid: res.userid,
+                        };
+
+                        alertArray.push(alert);
+
+                        console.log("alertArray.length: " + alertArray.length);
                 
                         console.log("Problem");
                         console.log("eventid: " + res.eventid);
@@ -75,5 +99,6 @@ async function parseZabbixResponse(pollResponse: PollResponse): Promise<void> {
             }
         }
     }
-      
+    
+    return alertArray;
 }

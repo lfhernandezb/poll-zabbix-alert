@@ -2,7 +2,10 @@ import { NextFunction, Request, Response } from "express";
 import { queryHostByTriggerId } from "../services/zabbix.service";
 import { PollResponse } from "../model/response.model";
 import { plainToInstance } from "class-transformer";
+import axios from "axios";
+import { handleAxiosError } from "../handlers/handle-axios-error";
 
+// async function getHostByTriggerId(req: Request, res: Response, next: NextFunction): Promise<Response<any, Record<string, any>> | undefined> {
 export const getHostByTriggerId: (req: Request, res: Response, next: NextFunction) => Promise<void> = async (req, res, next) => {
     // Your implementation
     try {
@@ -14,8 +17,7 @@ export const getHostByTriggerId: (req: Request, res: Response, next: NextFunctio
         parseZabbixResponse(pollResponse);
         res.send("Poll!");
     } catch (error: any) {
-        console.error("error caught!")
-        console.log(error.cause);        
+        next(error); // Pass the error to the middleware
     }
 };
 
